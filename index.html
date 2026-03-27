@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToyPCB@Home</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f0f0f0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ---- Top Bar ---- */
+        #top-bar {
+            background: #2c3e50;
+            color: white;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        #top-bar h1 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-right: 20px;
+            white-space: nowrap;
+        }
+
+        .top-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .top-group label {
+            font-size: 13px;
+            color: #bdc3c7;
+        }
+
+        .top-group input[type="number"],
+        .top-group select {
+            padding: 4px 6px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #34495e;
+            color: white;
+            font-size: 13px;
+            width: 70px;
+        }
+
+        .top-group select {
+            width: auto;
+        }
+
+        .btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            background: #3498db;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-warning {
+            background: #e67e22;
+        }
+
+        .btn-warning:hover {
+            background: #d35400;
+        }
+
+        .btn-small {
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+
+        .separator {
+            display: inline-block;
+            width: 1px;
+            height: 24px;
+            background: #555;
+            margin: 0 8px;
+        }
+
+        /* ---- STL Preview Overlay ---- */
+        #preview-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.85);
+        }
+
+        #stl-preview-cont {
+            width: 100%;
+            height: 100%;
+        }
+
+        #preview-close {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 4px;
+            background: #e74c3c;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        #preview-close:hover {
+            background: #c0392b;
+        }
+
+        /* ---- Main Layout ---- */
+        #main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ---- Left Panel ---- */
+        #left-panel {
+            width: 200px;
+            background: #ecf0f1;
+            border-right: 1px solid #bdc3c7;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            padding: 10px;
+            border-bottom: 1px solid #bdc3c7;
+        }
+
+        .panel-section h3 {
+            font-size: 13px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tool-btn {
+            display: block;
+            width: 100%;
+            padding: 8px 10px;
+            margin-bottom: 4px;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: left;
+            transition: all 0.15s;
+        }
+
+        .tool-btn:hover {
+            background: #d5e8f7;
+        }
+
+        .tool-btn.active {
+            border-color: #3498db;
+            background: #d5e8f7;
+            font-weight: 600;
+        }
+
+        .param-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 6px;
+            font-size: 12px;
+        }
+
+        .param-row label {
+            color: #555;
+            min-width: 50px;
+            flex-shrink: 0;
+        }
+
+        .param-row input,
+        .param-row select {
+            flex: 1;
+            min-width: 0;
+            max-width: 80px;
+            padding: 3px 5px;
+            border: 1px solid #bbb;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        /* Property Panel */
+        #property-panel {
+            display: none;
+        }
+
+        #property-panel .prop-type-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 6px;
+        }
+
+        .prop-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .prop-row label {
+            min-width: 24px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .prop-row input,
+        .prop-row select {
+            flex: 1;
+            min-width: 0;
+            max-width: 80px;
+            padding: 3px 5px;
+            border: 1px solid #bbb;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        /* ---- Canvas Area ---- */
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #ddd;
+        }
+
+        #pcb-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #coord-display {
+            position: absolute;
+            bottom: 6px;
+            left: 10px;
+            font-size: 12px;
+            color: #555;
+            background: rgba(255,255,255,0.85);
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            #left-panel {
+                width: 160px;
+            }
+        }
+
+        /* ---- Model Params Dropdown ---- */
+        #model-params-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 6px;
+            background: #2c3e50;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 10px 12px;
+            min-width: 220px;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        #model-params-dropdown.open {
+            display: block;
+        }
+        .mp-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+        .mp-row label {
+            min-width: 80px;
+            flex-shrink: 0;
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+        .mp-row input[type="number"] {
+            width: 65px;
+            padding: 3px 5px;
+            border: 1px solid #555;
+            border-radius: 3px;
+            background: #34495e;
+            color: white;
+            font-size: 12px;
+        }
+        .mp-row input[type="checkbox"] {
+            margin: 0;
+        }
+        .mp-unit {
+            font-size: 11px;
+            color: #888;
+        }
+        .mp-divider {
+            border-top: 1px solid #555;
+            margin: 8px 0;
+        }
+        #groove-fields.disabled {
+            opacity: 0.35;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div id="top-bar">
+        <h1>ToyPCB@Home</h1>
+
+        <div class="top-group">
+            <button id="btn-save" class="btn">💾 <span data-i18n="save">Save</span></button>
+            <button id="btn-open" class="btn">📁 <span data-i18n="open">Open</span></button>
+            <span class="separator"></span>
+            <button id="btn-preview" class="btn"><span data-i18n="previewStl">Preview STL</span></button>
+            <button id="btn-export" class="btn btn-success"><span data-i18n="exportStl">Export STL</span></button>
+            <div id="model-params-wrap" style="position:relative;">
+                <button id="btn-model-params" class="btn btn-warning">⚙ <span data-i18n="modelParams">Model Params</span></button>
+                <div id="model-params-dropdown">
+                    <div class="mp-row">
+                        <label data-i18n="thickness">Thickness:</label>
+                        <input type="number" id="pcb-thickness" value="1.6" min="0.1" step="0.1">
+                        <span class="mp-unit" data-i18n="mm">mm</span>
+                    </div>
+                    <div class="mp-row">
+                        <label data-i18n="traceGap">Trace gap:</label>
+                        <input type="number" id="trace-gap" value="0.4" min="0.1" step="0.1">
+                        <span class="mp-unit" data-i18n="mm">mm</span>
+                    </div>
+                    <div class="mp-row">
+                        <label data-i18n="traceHeight">Trace height:</label>
+                        <input type="number" id="trace-height" value="0.5" min="0.1" step="0.1">
+                        <span class="mp-unit" data-i18n="mm">mm</span>
+                    </div>
+                    <div class="mp-divider"></div>
+                    <div class="mp-row">
+                        <input type="checkbox" id="enable-grooves" checked>
+                        <label for="enable-grooves" data-i18n="grooves" style="min-width:0">Surface grooves</label>
+                    </div>
+                    <div id="groove-fields">
+                        <div class="mp-row">
+                            <label data-i18n="grooveWidth">Width:</label>
+                            <input type="number" id="groove-width" value="0.8" min="0.1" step="0.1">
+                            <span class="mp-unit" data-i18n="mm">mm</span>
+                        </div>
+                        <div class="mp-row">
+                            <label data-i18n="grooveDepth">Depth:</label>
+                            <input type="number" id="groove-depth" value="0.7" min="0.1" step="0.1">
+                            <span class="mp-unit" data-i18n="mm">mm</span>
+                        </div>
+                        <div class="mp-row">
+                            <label data-i18n="grooveSpacing">Spacing:</label>
+                            <input type="number" id="groove-spacing" value="0.5" min="0.1" step="0.1">
+                            <span class="mp-unit" data-i18n="mm">mm</span>
+                        </div>
+                        <div class="mp-row">
+                            <label data-i18n="traceFence">Fence:</label>
+                            <input type="number" id="trace-fence" value="0.4" min="0.1" step="0.1">
+                            <span class="mp-unit" data-i18n="mm">mm</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="file-input" accept=".json">
+        </div>
+
+        <div class="top-group">
+            <label data-i18n="view">View:</label>
+            <select id="view-mode">
+                <option value="both" selected data-i18n="viewBoth">Both Sides</option>
+                <option value="front" data-i18n="viewFront">Front</option>
+                <option value="back" data-i18n="viewBack">Back</option>
+            </select>
+        </div>
+
+        <select id="lang-select" style="margin-left:auto;padding:4px 6px;border:1px solid #555;border-radius:4px;background:#34495e;color:white;font-size:13px;">
+            <option value="en" selected>🌐 English</option>
+            <option value="zh">🌐 中文</option>
+            <option value="es">🌐 Español</option>
+            <option value="pt">🌐 Português</option>
+            <option value="ja">🌐 日本語</option>
+            <option value="ko">🌐 한국어</option>
+            <option value="ru">🌐 Русский</option>
+            <option value="fr">🌐 Français</option>
+            <option value="de">🌐 Deutsch</option>
+        </select>
+    </div>
+
+    <!-- STL Preview Overlay -->
+    <div id="preview-overlay">
+        <div style="position:absolute;top:12px;right:16px;z-index:210;display:flex;gap:8px;">
+            <button id="preview-export" class="btn btn-success" style="padding:8px 18px;font-size:14px;" data-i18n="exportStl">Export STL</button>
+            <button id="preview-close" style="padding:8px 18px;border:none;border-radius:4px;background:#e74c3c;color:white;font-size:14px;cursor:pointer;" data-i18n="close">Close</button>
+        </div>
+        <div id="stl-preview-cont"></div>
+    </div>
+
+    <!-- Main Layout -->
+    <div id="main">
+        <!-- Left Panel -->
+        <div id="left-panel">
+            <div class="panel-section">
+                <h3 data-i18n="tools">Tools</h3>
+                <button id="tool-select" class="tool-btn active">🖐️ <span data-i18n="toolMove">Select/Move (M)</span></button>
+                <button id="tool-boundary" class="tool-btn">🔲 <span data-i18n="toolBoundary">Draw Boundary (B)</span></button>
+                <button id="tool-circuit" class="tool-btn">⚡ <span data-i18n="toolCircuit">Draw Circuit (C)</span></button>
+                <button id="tool-via" class="tool-btn">⭕ <span data-i18n="toolVia">Place Via (V)</span></button>
+            </div>
+
+            <div class="panel-section">
+                <h3 data-i18n="drawSettings">Draw Settings</h3>
+                <div class="param-row">
+                    <label data-i18n="width">Width:</label>
+                    <input type="number" id="default-circuit-width" value="2" min="0.1" step="0.1">
+                    <span style="font-size:11px;color:#888" data-i18n="mm">mm</span>
+                </div>
+                <div class="param-row">
+                    <label data-i18n="diameter">Diameter:</label>
+                    <input type="number" id="default-via-diameter" value="1" min="0.1" step="0.1">
+                    <span style="font-size:11px;color:#888" data-i18n="mm">mm</span>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3 data-i18n="actions">Actions</h3>
+                <button id="btn-undo" class="tool-btn">↶ <span data-i18n="undo">Undo</span></button>
+                <button id="btn-redo" class="tool-btn">↷ <span data-i18n="redo">Redo</span></button>
+                <button id="btn-delete" class="tool-btn btn-danger" data-i18n="deleteSelected">Delete Selected</button>
+            </div>
+
+            <!-- Property Panel -->
+            <div class="panel-section" id="property-panel">
+                <h3 data-i18n="properties">Properties</h3>
+                <div class="prop-type-label" id="prop-type">-</div>
+
+                <div id="prop-line-fields">
+                    <div class="prop-row">
+                        <label>X1:</label>
+                        <input type="number" id="prop-x1" step="1">
+                    </div>
+                    <div class="prop-row">
+                        <label>Y1:</label>
+                        <input type="number" id="prop-y1" step="1">
+                    </div>
+                    <div class="prop-row">
+                        <label>X2:</label>
+                        <input type="number" id="prop-x2" step="1">
+                    </div>
+                    <div class="prop-row">
+                        <label>Y2:</label>
+                        <input type="number" id="prop-y2" step="1">
+                    </div>
+                    <div class="prop-row">
+                        <label data-i18n="length">Length:</label>
+                        <input type="text" id="prop-length" readonly style="background:#f5f5f5">
+                        <span style="font-size:11px;color:#888" data-i18n="mm">mm</span>
+                    </div>
+                </div>
+
+                <div id="prop-via-fields" style="display:none">
+                    <div class="prop-row">
+                        <label>CX:</label>
+                        <input type="number" id="prop-cx" step="1">
+                    </div>
+                    <div class="prop-row">
+                        <label>CY:</label>
+                        <input type="number" id="prop-cy" step="1">
+                    </div>
+                </div>
+
+                <div id="prop-width-field" style="display:none">
+                    <div class="prop-row">
+                        <label>W:</label>
+                        <input type="number" id="prop-width" min="0.1" step="0.1">
+                        <span style="font-size:11px;color:#888" data-i18n="mm">mm</span>
+                    </div>
+                </div>
+
+                <div id="prop-diameter-field" style="display:none">
+                    <div class="prop-row">
+                        <label>D:</label>
+                        <input type="number" id="prop-diameter" min="0.1" step="0.1">
+                        <span style="font-size:11px;color:#888" data-i18n="mm">mm</span>
+                    </div>
+                </div>
+
+                <div id="prop-side-field" style="display:none">
+                    <div class="prop-row">
+                        <label data-i18n="side">Side:</label>
+                        <select id="prop-side">
+                            <option value="front" data-i18n="sideFront">Front</option>
+                            <option value="back" data-i18n="sideBack">Back</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section" style="border-bottom:none; margin-top:auto;">
+                <div style="font-size:11px; color:#999; line-height:1.4;">
+                    <b data-i18n="hints">Hints:</b><br>
+                    <span data-i18n="hintScroll">Scroll: Zoom (adjust size if selected)</span><br>
+                    <span data-i18n="hintPan">Right-drag: Pan</span><br>
+                    <span data-i18n="hintDelete">Delete/Backspace: Remove</span><br>
+                    <span data-i18n="hintEsc">Esc: Cancel / Select mode</span><br>
+                    <span data-i18n="hintGrid">Grid: 1.27mm (1/20")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas Area -->
+        <div id="canvas-container">
+            <canvas id="pcb-canvas"></canvas>
+            <div id="coord-display">Grid: (0, 0)  |  mm: (0.00, 0.00)</div>
+        </div>
+    </div>
+
+    <!-- Scripts (load order matters) -->
+    <script src="js/jscad-modeling.min.js"></script>
+    <script src="js/stl_viewer/three.min.js"></script>
+    <script src="js/stl_viewer/OrbitControls.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/geometry.js"></script>
+    <script src="js/elements.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/stl.js"></script>
+    <script src="js/project.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
