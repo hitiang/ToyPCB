@@ -8,7 +8,7 @@ PCB.Config = {
     GRID_UNIT: 1.27,
 
     // Default PCB thickness in mm
-    DEFAULT_THICKNESS: 1.6,
+    DEFAULT_THICKNESS: 2,
 
     // Circuit trace height (embedded into base, flush with surface) in mm
     TRACE_HEIGHT: 0.5,
@@ -16,7 +16,7 @@ PCB.Config = {
     // Groove defaults (mm)
     DEFAULT_GROOVE_WIDTH: 0.8,
     DEFAULT_GROOVE_DEPTH: 0.7,
-    DEFAULT_GROOVE_SPACING: 0.5,
+    DEFAULT_GROOVE_SPACING: 0.4,
     DEFAULT_TRACE_GAP: 0.4,
     DEFAULT_TRACE_FENCE: 0.4,
 
